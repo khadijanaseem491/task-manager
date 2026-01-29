@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lab 9 – Task Manager</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #fdf0f5; /* pastel background */
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 50px;
+  }
+
+  .todo-container {
+    width: 360px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ffd6e0; /* pastel border */
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #b35f82; /* pastel heading */
+    font-size: 22px;
+  }
+
+  #taskInput {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 5px;
+    border: 1px solid #f5b7c1; /* pastel border */
+    margin-bottom: 10px;
+  }
+
+  #taskInput:focus {
+    outline: none;
+    border-color: #e880a1; /* pastel focus */
+  }
+
+  #addBtn {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 5px;
+    border: none;
+    background-color: #f5a9c2; /* pastel button */
+    color: #ffffff;
+    cursor: pointer;
+    margin-bottom: 15px;
+  }
+
+  #addBtn:hover {
+    background-color: #e87ca8;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #ffe0eb; /* pastel border */
+  }
+
+  .task-item span {
+    font-size: 15px;
+    color: #5f3d4b; /* pastel text */
+    word-break: break-word;
+  }
+
+  .task-item.completed span {
+    text-decoration: line-through;
+    color: #b8a3ac;
+  }
+
+  .actions button {
+    margin-left: 4px;
+    padding: 5px 7px;
+    font-size: 13px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .toggle-btn {
+    background-color: #a8e6cf; /* pastel green */
+    color: white;
+  }
+
+  .edit-btn {
+    background-color: #ffd3b6; /* pastel orange */
+    color: #5f3d4b;
+  }
+
+  .delete-btn {
+    background-color: #ff8b94; /* pastel red */
+    color: white;
+  }
+
+  .actions button:hover {
+    opacity: 0.85;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="todo-container">
+  <h2>Task Manager</h2>
+
+  <input id="taskInput" type="text" placeholder="Enter task">
+  <button id="addBtn">Add</button>
+
+  <ul id="taskList"></ul>
+</div>
+
+<script>
+let tasks = [];
+
+// Load data on startup
+window.onload = () => {
+  const saved = localStorage.getItem("tasks");
+  if (saved) {
+    tasks = JSON.parse(saved);
+    renderTasks();
+  }
+};
+
+// Save tasks
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+// Add task
+document.getElementById("addBtn").addEventListener("click", addTask);
+document.getElementById("taskInput").addEventListener("keypress", e => {
+  if (e.key === "Enter") addTask();
+});
+
+function addTask() {
+  const input = document.getElementById("taskInput");
+  const text = input.value.trim();
+  if (text === "") return;
+
+  tasks.push({
+    id: Date.now(),
+    text,
+    completed: false
+  });
+
+  input.value = "";
+  saveTasks();
+  renderTasks();
+}
+
+// Render tasks
+function renderTasks() {
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+
+  tasks.forEach(task => {
+    const li = document.createElement("li");
+    li.className = "task-item" + (task.completed ? " completed" : "");
+
+    const span = document.createElement("span");
+    span.textContent = task.text;
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const toggleBtn = document.createElement("button");
+    toggleBtn.className = "toggle-btn";
+    toggleBtn.textContent = "✔";
+    toggleBtn.onclick = () => toggleComplete(task.id);
+
+    const editBtn = document.createElement("button");
+    editBtn.className = "edit-btn";
+    editBtn.textContent = "Edit";
+    editBtn.onclick = () => editTask(task.id);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-btn";
+    deleteBtn.textContent = "Del";
+    deleteBtn.onclick = () => deleteTask(task.id);
+
+    actions.append(toggleBtn, editBtn, deleteBtn);
+    li.append(span, actions);
+    list.appendChild(li);
+  });
+}
+
+// Toggle complete
+function toggleComplete(id) {
+  tasks = tasks.map(t =>
+    t.id === id ? { ...t, completed: !t.completed } : t
+  );
+  saveTasks();
+  renderTasks();
+}
+
+// Edit task
+function editTask(id) {
+  const newText = prompt("Update task:");
+  if (!newText) return;
+
+  tasks = tasks.map(t =>
+    t.id === id ? { ...t, text: newText } : t
+  );
+
+  saveTasks();
+  renderTasks();
+}
+
+// Delete task
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks();
+  renderTasks();
+}
+</script>
+
+</body>
+</html>
